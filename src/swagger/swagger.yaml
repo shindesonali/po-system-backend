@@ -1,0 +1,304 @@
+openapi: 3.0.0
+info:
+  title: PO System API
+  version: "1.0.0"
+  description: RESTful API documentation for the Purchase Order System
+servers:
+  - url: http://localhost:5000
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Auth
+  - name: Requests
+  - name: Orders
+  - name: Vendors
+  - name: Approvals
+  - name: Budgets
+  - name: Dashboard
+
+paths:
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password, role, department]
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                role:
+                  type: string
+                department:
+                  type: string
+      responses:
+        201:
+          description: User registered
+
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Login and get JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        200:
+          description: Login successful
+
+  /api/requests:
+    get:
+      tags: [Requests]
+      summary: Get all purchase requests
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: List of requests
+
+    post:
+      tags: [Requests]
+      summary: Create a new purchase request
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [itemName, quantity, department]
+              properties:
+                itemName:
+                  type: string
+                quantity:
+                  type: integer
+                department:
+                  type: string
+      responses:
+        201:
+          description: Request created
+
+  /api/requests/{id}/status:
+    put:
+      tags: [Requests]
+      summary: Update request status (Approved/Rejected)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+      responses:
+        200:
+          description: Status updated
+
+  /api/vendors:
+    get:
+      tags: [Vendors]
+      summary: Get all vendors
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Vendor list
+
+    post:
+      tags: [Vendors]
+      summary: Create new vendor
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, phone, address, rating]
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                phone:
+                  type: string
+                address:
+                  type: string
+                rating:
+                  type: number
+      responses:
+        201:
+          description: Vendor created
+
+  /api/orders:
+    get:
+      tags: [Orders]
+      summary: Get all purchase orders
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: List of purchase orders
+
+    post:
+      tags: [Orders]
+      summary: Create a purchase order
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [requestID, vendorID, amount, deliveryDate]
+              properties:
+                requestID:
+                  type: integer
+                vendorID:
+                  type: integer
+                amount:
+                  type: number
+                deliveryDate:
+                  type: string
+                  format: date
+      responses:
+        201:
+          description: Purchase order created
+
+  /api/approvals:
+    get:
+      tags: [Approvals]
+      summary: Get all approvals
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: List of approvals
+
+    post:
+      tags: [Approvals]
+      summary: Approve or reject a request
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [requestID, status]
+              properties:
+                requestID:
+                  type: integer
+                status:
+                  type: string
+                comments:
+                  type: string
+      responses:
+        201:
+          description: Approval recorded
+
+  /api/budgets:
+    get:
+      tags: [Budgets]
+      summary: Get all budgets
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: List of budgets
+
+    post:
+      tags: [Budgets]
+      summary: Create a budget
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [department, allocatedBudget]
+              properties:
+                department:
+                  type: string
+                allocatedBudget:
+                  type: number
+      responses:
+        201:
+          description: Budget created
+
+  /api/budgets/{department}/use:
+    put:
+      tags: [Budgets]
+      summary: Deduct amount from department budget
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: department
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount]
+              properties:
+                amount:
+                  type: number
+      responses:
+        200:
+          description: Budget updated
+
+  /api/dashboard:
+    get:
+      tags: [Dashboard]
+      summary: Get dashboard summary
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Summary of system totals
